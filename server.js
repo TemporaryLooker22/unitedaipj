@@ -7,13 +7,27 @@ const app = express();
 
 // CORS configuration
 const corsOptions = {
-    origin: '*',
+    origin: [
+        'https://unitedaigo.vercel.app',
+        'https://unitedaigo-5sdad1hdp-arthurvanstrydonckmail-gmailcoms-projects.vercel.app',
+        'http://localhost:3000'
+    ],
     methods: ['POST', 'GET', 'OPTIONS'],
-    allowedHeaders: ['Content-Type']
+    allowedHeaders: ['Content-Type'],
+    credentials: true
 };
 
 app.use(cors(corsOptions));
 app.options('*', cors(corsOptions));
+
+// Additional CORS headers
+app.use((req, res, next) => {
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'Content-Type');
+    next();
+});
+
 app.use(express.json());
 
 // Search endpoint
@@ -25,6 +39,10 @@ app.post('/api/search', async (req, res) => {
         if (!process.env.GOOGLE_API_KEY || !process.env.SEARCH_ENGINE_ID) {
             throw new Error('API configuration missing');
         }
+
+        console.log('Received search query:', query);
+        console.log('API Key configured:', !!process.env.GOOGLE_API_KEY);
+        console.log('Search Engine ID configured:', !!process.env.SEARCH_ENGINE_ID);
 
         // Google Custom Search API request
         const response = await axios.get(
@@ -45,6 +63,7 @@ app.post('/api/search', async (req, res) => {
             link: item.link
         }));
 
+        console.log('Search successful, found', results.length, 'results');
         res.json({ success: true, results });
 
     } catch (error) {
@@ -67,5 +86,16 @@ app.get('/health', (req, res) => {
     });
 });
 
-// Export for Vercel
+const PORT = process.env.PORT || 5000;
+
+// Start server if not in production
+if (process.env.NODE_ENV !== 'production') {
+    app.listen(PORT, () => {
+        console.log(`Server running on port ${PORT}`);
+        console.log(`API Key configured: ${process.env.GOOGLE_API_KEY ? 'Yes' : 'No'}`);
+        console.log(`Search Engine ID configured: ${process.env.SEARCH_ENGINE_ID ? 'Yes' : 'No'}`);
+    });
+}
+
+// Export for production
 module.exports = app;

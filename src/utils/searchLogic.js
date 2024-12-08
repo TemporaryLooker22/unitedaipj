@@ -1,11 +1,17 @@
 import axios from 'axios';
 
+// API URL configuration with absolute paths
 const API_URL = process.env.NODE_ENV === 'production'
-    ? '/api'
+    ? 'https://unitedaigo.vercel.app/api'  // Production URL
     : 'http://localhost:5000/api';
 
 async function searchAndCompare(query) {
     try {
+        // Debug logs
+        console.log('Environment:', process.env.NODE_ENV);
+        console.log('API URL:', API_URL);
+        console.log('Making request to:', `${API_URL}/search`);
+
         const response = await axios.post(`${API_URL}/search`, {
             query: query
         }, {
@@ -22,17 +28,23 @@ async function searchAndCompare(query) {
         return formatResponse(response.data.results);
 
     } catch (error) {
+        // Detailed error handling
         let errorMessage = "Désolé, une erreur s'est produite: ";
 
         if (error.response) {
-            errorMessage += `(${error.response.status})`;
+            // Server responded with error
+            errorMessage += `(${error.response.status}) ${error.response.data?.error || ''}`;
+            console.error('Server error:', error.response.data);
         } else if (error.request) {
-            errorMessage += "Impossible de contacter le serveur";
+            // No response received
+            errorMessage += "Impossible de contacter le serveur. Vérifiez votre connexion.";
+            console.error('Network error:', error.request);
         } else {
+            // Request setup error
             errorMessage += error.message;
+            console.error('Request setup error:', error.message);
         }
 
-        console.error('Search error:', error);
         return errorMessage;
     }
 }
