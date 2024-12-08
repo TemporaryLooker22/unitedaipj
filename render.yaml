@@ -1,0 +1,18 @@
+services:
+  - type: web
+    name: unitedaipj-backend
+    env: node
+    buildCommand: npm install
+    startCommand: node server.js
+    envVars:
+      - key: GOOGLE_API_KEY
+        sync: false
+      - key: SEARCH_ENGINE_ID
+        sync: false
+
+  - type: static
+    name: unitedaipj-frontend
+    buildCommand: npm run build
+    staticPublishPath: ./build
+
+
